@@ -1,0 +1,9 @@
+# Archivos y carpetas a ignorar
+node_modules/
+.env
+.DS_Store
+npm-debug.log
+dist/
+*.log
+.idea/
+.vscode/
