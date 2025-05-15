@@ -59,44 +59,56 @@ class EscPosPrinterService {
   generateEscPosCommands(order) {
     const sanitizeText = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+    // Format the created_at date
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('es-CL', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    };
+
     const header = [
-      '\x1B\x40', // Initialize printer
-      '\x1B\x61\x01', // Center alignment
-      '\x1D\x21\x11', // Double font size
-      sanitizeText('COMPROBANTE DE VENTA\n'),
-      '\x1D\x21\x00', // Reset font size
-      '================================\n',
-      `Orden #${order.order_number}\n`,
-      `Fecha: ${new Date().toLocaleString()}\n`,
-      '================================\n',
+        '\x1B\x40', // Initialize printer
+        '\x1B\x61\x01', // Center alignment
+        '\x1D\x21\x11', // Double font size
+        sanitizeText('COMPROBANTE DE VENTA\n'),
+        '\x1D\x21\x00', // Reset font size
+        '================================\n',
+        `Orden #${order.order_number}\n`,
+        `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`, // Format created_at
+        '================================\n',
     ];
 
     const items = order.items.map((item) => {
-      const name = sanitizeText(item.product_name).substring(0, 30);
-      const quantity = item.quantity;
-      const unitPrice = item.unit_price.toFixed(2);
-      const totalPrice = item.total_price.toFixed(2);
-      const instructions = item.special_instructions
-        ? `  Nota: ${sanitizeText(item.special_instructions)}\n`
-        : '';
-      return `${name}\n${quantity} x $${unitPrice} = $${totalPrice}\n${instructions}`;
+        const name = sanitizeText(item.product_name).substring(0, 30);
+        const quantity = item.quantity;
+        const unitPrice = item.unit_price.toFixed(2);
+        const totalPrice = item.total_price.toFixed(2);
+        const instructions = item.special_instructions
+            ? `  Nota: ${sanitizeText(item.special_instructions)}\n`
+            : '';
+        return `${name}\n${quantity} x $${unitPrice} = $${totalPrice}\n${instructions}`;
     });
 
     const totals = [
-      '\n--------------------------------\n',
-      `SUBTOTAL: $${order.subtotal.toFixed(2)}\n`,
-      `IVA 19%: $${order.tax.toFixed(2)}\n`,
-      '\x1D\x21\x01', // Double height for total
-      `TOTAL: $${order.total.toFixed(2)}\n`,
-      '\x1D\x21\x00', // Reset font size
+        '\n--------------------------------\n',
+        `SUBTOTAL: $${order.subtotal.toFixed(2)}\n`,
+        `IVA 19%: $${order.tax.toFixed(2)}\n`,
+        '\x1D\x21\x01', // Double height for total
+        `TOTAL: $${order.total.toFixed(2)}\n`,
+        '\x1D\x21\x00', // Reset font size
     ];
 
     const footer = [
-      '\n================================\n',
-      '¡Gracias por su compra!\n',
-      '\x1B\x64\x03', // Feed 3 lines
-      '\x1B\x64\x03', // Feed 3 lines
-      '\x1B\x69', // Cut paper
+        '\n================================\n',
+        '¡Gracias por su compra!\n',
+        '\x1B\x64\x03', // Feed 3 lines
+        '\x1B\x64\x03', // Feed 3 lines
+        '\x1B\x69', // Cut paper
     ];
 
     return [...header, ...items, ...totals, ...footer].join('');
