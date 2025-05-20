@@ -72,14 +72,17 @@ class EscPosPrinterService {
     };
 
     const header = [
-        '\x1B\x40', // Initialize printer
-        '\x1B\x61\x01', // Center alignment
-        '\x1D\x21\x11', // Double font size
-        sanitizeText('COMPROBANTE DE VENTA\n'),
-        '\x1D\x21\x00', // Reset font size
+        '\x1B\x40',              // Init
+        '\x1B\x61\x01',          // Center
+        '\x1D\x21\x11',          // Doble ancho+alto
+        `#${order.order_number}\n`,  // Ahora en grande
+        '\x1D\x21\x00',          // Reset tamaño
         '================================\n',
-        `Orden #${order.order_number}\n`,
-        `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`, // Format created_at
+        '\x1D\x21\x01',          // Doble alto
+        sanitizeText('COMPROBANTE DE VENTA\n'), // Ahora un poco más grande
+        '\x1D\x21\x00',          // Reset tamaño
+        `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`,
+        `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`, // Added table name
         '================================\n',
     ];
 
