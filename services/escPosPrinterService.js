@@ -5,7 +5,7 @@ const os = require('os');
 
 class EscPosPrinterService {
   constructor(printerName) {
-    this.printerName = printerName || process.env.PRINTER_NAME || 'POS-80-Series';
+    this.printerName = printerName || process.env.PRINTER_NAME || 'POS-80C';
     this.tempFilePath = path.join(os.tmpdir(), 'receipt-raw.txt');
   }
 
