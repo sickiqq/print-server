@@ -39,11 +39,26 @@ class EscPosPrinterService {
 
   async _cleanTempFile() {
     try {
-      await fs.access(this.tempFilePath);
-      await fs.unlink(this.tempFilePath);
+      // Agregamos un pequeño delay para asegurar que el archivo no esté en uso
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const exists = await fs.access(this.tempFilePath)
+        .then(() => true)
+        .catch(() => false);
+      
+      if (exists) {
+        await fs.unlink(this.tempFilePath)
+          .catch(error => {
+            // Si el archivo está en uso, lo ignoramos silenciosamente
+            if (error.code !== 'EBUSY' && error.code !== 'ENOENT') {
+              console.warn('No se pudo eliminar el archivo temporal:', error.message);
+            }
+          });
+      }
     } catch (error) {
+      // Ignoramos errores de limpieza ya que no son críticos
       if (error.code !== 'ENOENT') {
-        console.warn('Could not delete temp file:', error.message);
+        console.debug('Error al limpiar archivo temporal:', error.code);
       }
     }
   }
