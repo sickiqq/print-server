@@ -7,3 +7,15 @@ dist/
 *.log
 .idea/
 .vscode/
+
+# Archivos generados por pkg
+dist/
+*.exe
+*.pkg
+
+# Archivos temporales de impresión
+**/receipt-raw.txt
+
+# Archivos de compilación adicionales
+build/
+pkg-cache/
