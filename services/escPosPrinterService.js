@@ -11,23 +11,16 @@ class EscPosPrinterService {
 
   async printReceipt(order) {
     try {
-      // Validate order structure
       if (!order || !Array.isArray(order.items)) {
         throw new Error('Invalid order format: "items" must be an array.');
       }
 
       const escPosCommands = this.generateEscPosCommands(order);
-
-      // Create temporary file
       await fs.writeFile(this.tempFilePath, escPosCommands, 'binary');
-
-      // Send to printer
       await this._sendToPrinter();
     } catch (error) {
-      console.error('Error printing receipt:', error.message);
       throw error;
     } finally {
-      // Clean temporary file
       await this._cleanTempFile();
     }
   }
@@ -46,7 +39,6 @@ class EscPosPrinterService {
 
   async _cleanTempFile() {
     try {
-      // Check if the file exists before attempting to delete it
       await fs.access(this.tempFilePath);
       await fs.unlink(this.tempFilePath);
     } catch (error) {
@@ -59,7 +51,6 @@ class EscPosPrinterService {
   generateEscPosCommands(order) {
     const sanitizeText = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-    // Format the created_at date
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString('es-CL', { 
@@ -72,17 +63,17 @@ class EscPosPrinterService {
     };
 
     const header = [
-        '\x1B\x40',              // Init
-        '\x1B\x61\x01',          // Center
-        '\x1D\x21\x11',          // Doble ancho+alto
-        `#${order.order_number}\n`,  // Ahora en grande
-        '\x1D\x21\x00',          // Reset tamaño
+        '\x1B\x40',
+        '\x1B\x61\x01',
+        '\x1D\x21\x11',
+        `#${order.order_number}\n`,
+        '\x1D\x21\x00',
         '================================\n',
-        '\x1D\x21\x01',          // Doble alto
-        sanitizeText('COMPROBANTE DE VENTA\n'), // Ahora un poco más grande
-        '\x1D\x21\x00',          // Reset tamaño
+        '\x1D\x21\x01',
+        sanitizeText('COMPROBANTE DE VENTA\n'),
+        '\x1D\x21\x00',
         `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`,
-        `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`, // Added table name
+        `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`,
         '================================\n',
     ];
 
@@ -101,17 +92,17 @@ class EscPosPrinterService {
         '\n--------------------------------\n',
         `SUBTOTAL: $${order.subtotal.toFixed(2)}\n`,
         `IVA 19%: $${order.tax.toFixed(2)}\n`,
-        '\x1D\x21\x01', // Double height for total
+        '\x1D\x21\x01',
         `TOTAL: $${order.total.toFixed(2)}\n`,
-        '\x1D\x21\x00', // Reset font size
+        '\x1D\x21\x00',
     ];
 
     const footer = [
         '\n================================\n',
         '¡Gracias por su compra!\n',
-        '\x1B\x64\x03', // Feed 3 lines
-        '\x1B\x64\x03', // Feed 3 lines
-        '\x1B\x69', // Cut paper
+        '\x1B\x64\x03',
+        '\x1B\x64\x03',
+        '\x1B\x69',
     ];
 
     return [...header, ...items, ...totals, ...footer].join('');
