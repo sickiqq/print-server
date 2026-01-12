@@ -78,18 +78,19 @@ class EscPosPrinterService {
     };
 
     const header = [
-        '\x1B\x40',
-        '\x1B\x61\x01',
-        '\x1D\x21\x11',
-        `#${order.order_number}\n`,
-        '\x1D\x21\x00',
-        '================================\n',
-        '\x1D\x21\x01',
-        sanitizeText('COMPROBANTE DE VENTA\n'),
-        '\x1D\x21\x00',
-        `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`,
-        `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`,
-        '================================\n',
+      '\x1B\x40',
+      '\x1B\x61\x01',
+      '\x1D\x21\x11',
+      `#${order.order_number}\n`,
+      '\x1D\x21\x00',
+      '================================\n',
+      '\x1D\x21\x01',
+      sanitizeText('COMPROBANTE DE VENTA\n'),
+      '\x1D\x21\x00',
+      `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`,
+      `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`,
+      order.order_type ? `Tipo de Orden: ${sanitizeText(order.order_type)}\n` : '',
+      '================================\n',
     ];
 
     const items = order.items.map((item) => {
