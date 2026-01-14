@@ -90,8 +90,31 @@ class EscPosPrinterService {
       `Fecha: ${order.created_at ? formatDate(order.created_at) : new Date().toLocaleString()}\n`,
       `Mesa: ${sanitizeText(order.table_name || 'Sin Asignar')}\n`,
       order.order_type ? `Tipo de Orden: ${sanitizeText(order.order_type)}\n` : '',
+      // Campos extra para Delivery o Retiro
+      (order.order_type === 'Delivery' || order.order_type === 'Retiro') ? formatCustomerFields(order) : '',
       '================================\n',
     ];
+    // Función para formatear campos largos en varias líneas (máx 30 caracteres por línea)
+    function formatLongText(label, value) {
+      const sanitized = sanitizeText(value || '');
+      if (!sanitized) return '';
+      // Imprime todo el texto en una sola línea, sin cortar
+      return `${label}: ${sanitized}\n`;
+    }
+
+    // Formatea los campos de cliente para Delivery/Retiro
+    function formatCustomerFields(order) {
+      let out = '';
+      if (order.order_type === 'Retiro') {
+        out += formatLongText('Nombre', order.customer_name);
+        out += formatLongText('Teléfono', order.customer_phone);
+      } else if (order.order_type === 'Delivery') {
+        out += formatLongText('Nombre', order.customer_name);
+        out += formatLongText('Teléfono', order.customer_phone);
+        out += formatLongText('Dirección', order.customer_address);
+      }
+      return out;
+    }
 
     const items = order.items.map((item) => {
         const name = sanitizeText(item.product_name).substring(0, 30);
